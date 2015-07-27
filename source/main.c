@@ -4,6 +4,8 @@
 static VUSART_t * usart1;
 static VUSART_t * usart2;
 
+
+
 void myIRQHandler(void){
 	if(VUSART_Method_GetFlagStatus(usart1,VUSART_FLAG_RXNE)) 
 		printf("Handler: Reception VUSART1 <- %c\n",VUSART_Method_ReadData(usart1));
@@ -31,22 +33,8 @@ void myIRQHandler2(void){
 	}
 }
 
-void usart1_inputPipe(TX_TYPE_t ttype, char data){
-	if(ttype == TX_TYPE_DATA){
-		external_sendData(usart1,data);
-	}else{
-		external_sendBreak(usart1);
-	}
-}
-
-
-void usart2_inputPipe(TX_TYPE_t ttype, char data){
-	if(ttype == TX_TYPE_DATA){
-		external_sendData(usart2,data);
-	}else{
-		external_sendBreak(usart2);
-	}
-}
+NEW_INPUT_PIPE(usart1)
+NEW_INPUT_PIPE(usart2)
 
 void usart1_init(){
 	usart1 = newVUSART(myIRQHandler);

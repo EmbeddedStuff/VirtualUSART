@@ -11,6 +11,17 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
+
+	/**
+	 *Creates a new input pipe
+	 */
+	#define NEW_INPUT_PIPE(Usart_Name) void Usart_Name ## _inputPipe(TX_TYPE_t ttype, char data){\
+		if(ttype == TX_TYPE_DATA){\
+			external_sendData(Usart_Name,data);\
+		}else{\
+			external_sendBreak(Usart_Name);\
+		}\
+	}
 	
 	/**
 	 * Interrupt Status Register
