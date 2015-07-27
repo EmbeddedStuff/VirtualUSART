@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 VUSART_t *  newVUSART(void (*isr_handler)(void)){
+	static int id_generator=1;
 	VUSART_t * vusart;
 	vusart = malloc(sizeof(VUSART_t));
 	
@@ -23,7 +24,9 @@ VUSART_t *  newVUSART(void (*isr_handler)(void)){
 	cr->TXEIE=0;
 	
 	vusart->registers.tx_status=VUSART_TXStatus_IDLE;
+	vusart->ID=id_generator++;
 	vusart->isr_handler=isr_handler;
+	vusart->outputPipe=default_outputPipe;
 	return vusart;
 }
 
@@ -56,12 +59,14 @@ int VUSART_Method_GetFlagStatus(VUSART_t * vusart,VUSART_FLAG_t flag){
 void external_sendData(VUSART_t * vusart,char data){
 	vusart->registers.RX=data;
 	vusart->registers.ISR.RXNE=1;
+	printf("Hardware: Reception VUSART%d <- %c\n",vusart->ID,data);
 }
 
 void external_sendBreak(VUSART_t * vusart){
 	vusart->registers.ISR.LBD=1;
-	printf("Hardware: Break Detected\n");
+	printf("Hardware: Reception VUSART%d <- BREAK\n",vusart->ID);
 }
+
 
 void VUSART_StepSimualtion(VUSART_t * vusart){
 	/*Interrupt Generation*/
@@ -71,31 +76,43 @@ void VUSART_StepSimualtion(VUSART_t * vusart){
 	if(vusart->registers.tx_status != VUSART_TXStatus_IDLE){
 		if(isr->TC==0){
 			isr->TC=1;
-			printf("Hardware: Transmission Completed\n");
+			printf("Hardware: VUSART%d Transmission Completed\n",vusart->ID);
+			if(vusart->registers.tx_status == VUSART_TXStatus_DATA){
+				vusart->outputPipe(TX_TYPE_DATA,vusart->registers.TX_shadow);
+			}else if(vusart->registers.tx_status == VUSART_TXStatus_LB){
+				vusart->outputPipe(TX_TYPE_BREAK,0);
+			}
 			vusart->registers.tx_status = VUSART_TXStatus_IDLE;
 		}
 	}
 	
 	
 	if(cr->SBKRQ){
-		printf("Hardware: Transmitting -> BREAK\n");
+		printf("Hardware: Transmitting VUSART%d -> BREAK\n",vusart->ID);
 		cr->SBKRQ=0;
 		isr->TC=0;
 		vusart->registers.tx_status = VUSART_TXStatus_LB;
 	}
 	
 	if(isr->TXE==0){
-		printf("Hardware: Transmitting -> %c\n",vusart->registers.TX);
+		vusart->registers.TX_shadow=vusart->registers.TX;
+		printf("Hardware: Transmitting VUSART%d -> %c\n",vusart->ID,vusart->registers.TX);
 		isr->TC=0;
 		isr->TXE=1;
 		vusart->registers.tx_status = VUSART_TXStatus_DATA;
 	}
-	
-	
 	
 	/*Interrupt generation*/
 	if(((isr->TXE)&&(cr->TXEIE))||
 		((isr->LBD)&&(cr->LBDIE))||
 		((isr->RXNE)&&(cr->RXNEIE))||
 		((isr->TC)&&(cr->TCIE))) vusart->isr_handler();
+}
+
+void default_outputPipe(TX_TYPE_t ttype, char data){
+	if(ttype == TX_TYPE_DATA){
+		printf("DefaultOutputPipe: %c\n",data);
+	}else{
+		printf("DefaultOutputPipe: BREAK\n");
+	}
 }

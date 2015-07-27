@@ -45,13 +45,21 @@ extern "C" {
 		VUSART_REGISTER_CR_t CR;
 		VUSART_REGISTER_ISR_t ISR;
 		VUSART_TXStatus_t tx_status;
-		int RX;/*!< Read Buffer*/
+		int RX;/*!< Rx Buffer*/
 		int TX;/*!< Tx Buffer*/
+		int TX_shadow;/*!< Shadow Tx buffer*/
 	}VUSART_Registers_t;
+	
+	typedef enum{
+		TX_TYPE_DATA,
+		TX_TYPE_BREAK
+	}TX_TYPE_t;
 	
 	typedef struct{
 		VUSART_Registers_t registers;
+		int ID;
 		void (*isr_handler)(void);
+		void (*outputPipe)(TX_TYPE_t ttype, char data);
 	}VUSART_t;
 	
 	typedef enum{
@@ -71,6 +79,8 @@ extern "C" {
 	void external_sendBreak(VUSART_t * vusart);
 		
 	void VUSART_StepSimualtion(VUSART_t *);
+	
+	void default_outputPipe(TX_TYPE_t ttype, char data);
 	
 #ifdef	__cplusplus
 }
