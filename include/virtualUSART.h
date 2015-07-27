@@ -12,18 +12,38 @@
 extern "C" {
 #endif
 	
+	/**
+	 * Interrupt Status Register
+	 */
 	typedef struct{
-		int RXNE;
-		int TXE;
-		int TX;
-		int RX;
-		int OVERFLOW;
-		int B;
-	}VUSART_Register_t;
+		int RXNE;/*!< Read Buffer not empty*/
+		int TXE;/*!< Tx Buffer empty */
+		int LBD;/*!< LIN break detected*/
+		int TC;/*!< Transmission complete*/
+	}VUSART_REGISTER_ISR_t;
+	
+	
+	/**
+	 * Control Register
+	 */
+	typedef struct{ 
+		int RXNEIE;/*!< RXNE Interrupt Enable*/
+		int TXEIE;/*!< TXE Interrupt Enable*/
+		int LBDIE;/*!< LBD Interrupt Enable*/
+		int TCIE;/*!< TC Interrupt Enable*/
+		int SBKRQ;/*!< Send Break*/
+	}VUSART_REGISTER_CR_t;
 	
 	
 	typedef struct{
-		VUSART_Register_t registers;
+		VUSART_REGISTER_CR_t CR;
+		VUSART_REGISTER_ISR_t ISR;
+		int RX;/*!< Read Buffer*/
+		int TX;/*!< Tx Buffer*/
+	}VUSART_Registers_t;
+	
+	typedef struct{
+		VUSART_Registers_t registers;
 		void (*isr_handler)(void);
 	}VUSART_t;
 	

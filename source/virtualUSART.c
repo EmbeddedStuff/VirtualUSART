@@ -18,13 +18,13 @@ void VUSART_Method_SendData(VUSART_t * vusart,char data){
 }
 
 char VUSART_Method_ReadData(VUSART_t * vusart){
-	vusart->registers.RXNE=0;
+	vusart->registers.ISR.RXNE=0;
 	return vusart->registers.RX;
 }
 
 void external_sendData(VUSART_t * vusart,char data){
 	vusart->registers.RX=data;
-	vusart->registers.RXNE=1;
+	vusart->registers.ISR.RXNE=1;
 	vusart->isr_handler();
 }
 
