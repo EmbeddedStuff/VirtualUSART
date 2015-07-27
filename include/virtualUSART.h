@@ -11,10 +11,34 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
+	
+	typedef struct{
+		int RXNE;
+		int TXE;
+		int TX;
+		int RX;
+		int OVERFLOW;
+		int B;
+	}VUSART_Register_t;
+	
+	
+	typedef struct{
+		VUSART_Register_t registers;
+		void (*isr_handler)(void);
+	}VUSART_t;
+	
 
-
-
-
+	
+	VUSART_t *  newVUSART(void (*isr_handler)(void));
+	void  deleteVUSART(VUSART_t * vusartObject);
+	void VUSART_Method_SendData(VUSART_t * vusart,char data);
+	char VUSART_Method_ReadData(VUSART_t * vusart);
+	
+	void external_sendData(VUSART_t * vusart,char data);
+	
+		
+	void VUSART_StepSimualtion(VUSART_t *);
+	
 #ifdef	__cplusplus
 }
 #endif
