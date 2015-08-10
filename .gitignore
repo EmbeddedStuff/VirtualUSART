@@ -1,3 +1,7 @@
+/*
 /objects
-/main
-/nbproject
+
+!/source
+!/include
+!/Makefile
+!/.gitignore
